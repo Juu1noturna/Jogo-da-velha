@@ -1,2 +1,181 @@
 # Jogo-da-velha
 Jogo da velha no react.
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jogo da Velha</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <style>
+body {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    text-align: center;
+    background-image: url(image/roxo.jpeg);
+    background-repeat:no-repeat;
+    background-size:cover;
+    }
+h1 {
+    color: #f8f4f4;
+    }
+.board {
+    border: 4px solid #2a1131;
+    width: 204px;
+    height: 204px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    }
+.square {
+      background: #fff;
+      font-size: 50px;
+      font-weight: bold;
+      line-height: 68px;
+      height: 68px;
+      padding: 0;
+      text-align: center;
+      width: 68px;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s;
+    }
+.square:hover {
+      background: #eee;
+    }
+.status {
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+.restart-button {
+      padding: 11px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 20px;
+      background-color: #791e74;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+.restart-button:hover {
+      background-color: #311331;
+}
+    </style>
+  <div id="root"></div>
+
+  <script type="text/babel">
+   
+    const winningCombinations = [
+      [0, 1, 2], 
+      [3, 4, 5], 
+      [6, 7, 8],
+      [0, 3, 6], 
+      [1, 4, 7], 
+      [2, 5, 8], 
+      [0, 4, 8], 
+      [2, 4, 6],           
+    ];
+    function calculateWinner(squares) {
+      for (let i = 0; i < winningCombinations.length; i++) {
+        const [a, b, c] = winningCombinations[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+          return squares[a];
+        }
+      }
+      return null;
+    }
+    function isDraw(squares) {
+      return calculateWinner(squares) === null && squares.every(square => square !== null);
+    }
+    function Square({ value, onClick }) {
+      return (
+        <button className="square" onClick={onClick}>
+          {value}
+        </button>
+      );
+    }
+    function Board({ squares, onClick }) {
+      const renderSquare = (i) => {
+        return (
+          <Square
+            key={i} 
+            value={squares[i]}
+            onClick={() => onClick(i)}
+          />
+        );
+      };
+
+    return (
+        <div className="board">
+          {Array(9).fill(null).map((_, i) => (
+            renderSquare(i)
+          ))}
+        </div>
+      );
+    }
+    function Game() {
+      const [squares, setSquares] = React.useState(Array(9).fill(null));
+      const [isXNext, setIsXNext] = React.useState(true);
+      const [winner, setWinner] = React.useState(null);
+      const [draw, setDraw] = React.useState(false);
+
+      React.useEffect(() => {
+        const currentWinner = calculateWinner(squares);
+        if (currentWinner) {
+          setWinner(currentWinner);
+        } else if (isDraw(squares)) {
+          setDraw(true);
+        }
+      }, [squares]);
+
+      const handleClick = (i) => {
+        const newSquares = [...squares];
+
+        if (winner || draw || newSquares[i]) {
+          return;
+        }
+
+        newSquares[i] = isXNext ? 'X' : 'O';
+
+        setSquares(newSquares);
+        setIsXNext(!isXNext);
+      };
+
+      const handleRestart = () => {
+        setSquares(Array(9).fill(null));
+        setIsXNext(true);
+        setWinner(null);
+        setDraw(false);
+      };
+      let status;
+      if (winner) {
+        status = `Vencedor: ${winner}`;
+      } else if (draw) {
+        status = `Empate!`;
+      } else {
+        status = `Próximo Jogador: ${isXNext ? 'X' : 'O'}`;
+      }
+
+      return (
+        <div>
+          <h1>Jogo da Velha</h1>
+          <div className="status">{status}</div>
+          
+          <Board squares={squares} onClick={handleClick} />
+
+          <button className="restart-button" onClick={handleRestart}>
+            Reiniciar
+          </button>
+        </div>
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<Game />);
+  </script>
+</body>
+</html>
